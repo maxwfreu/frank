@@ -4,12 +4,18 @@ import webbrowser
 import json 
 import spotipy
 import time
+import wikipedia
 
 from os import system
+from pprint import pprint
+
 
 def handleCmd(str):
     split = str.split()
     cmdTerm = split[0]
+    if str == "who are you":
+        system('say You made me. I am not real. What else do you want to know?')
+        iamnotarobot()
     if str == "good morning frank":
         print("good morning max")
         system('say Good morning max')
@@ -19,9 +25,21 @@ def handleCmd(str):
         return True
     if cmdTerm == "search":
         system('say Let me search that for you')
-        print("I am pulling up a google search for you now")
-        url = "https://www.google.com.tr/search?q={}".format(str.split(' ',1)[1])    
-        webbrowser.open(url)
+        if split[1] == 'google':
+            # print("I am pulling up a google search for you now")
+            if split[2] == 'for':
+                url = "https://www.google.com.tr/search?q={}".format(str.split(' ',3)[3])    
+                webbrowser.open(url)
+            else:
+                url = "https://www.google.com.tr/search?q={}".format(str.split(' ',2)[2])    
+                webbrowser.open(url)
+        if split [1] == 'Wikipedia':
+            if split[2] == 'for':
+                page = wikipedia.page(str.split(' ', 3)[3])
+                webbrowser.open(page.url)
+            else:
+                page = wikipedia.page(str.split(' ', 2)[2])
+                webbrowser.open(page.url)
     if cmdTerm == "play":
         system('say Sure thing let me quickly pull up that dank track')
         print("playing dank tunes as per your request")
@@ -47,7 +65,6 @@ def startListening():
             # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
             # instead of `r.recognize_google(audio)`
             print("Frank thinks you said " + r.recognize_google(audio))
-            from pprint import pprint
             obj = r.recognize_google(audio, show_all=True)
             n = json.dumps(obj)  
             o = json.loads(n)
@@ -55,10 +72,42 @@ def startListening():
             if handleCmd(cmd):
                 break
         except sr.UnknownValueError:
-            print("Frnak could not understand audio")
+            print("Frank could not understand audio")
         except sr.RequestError as e:
             print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
+def answerSelfQuestion(cmd):
+    split = cmd.split()
+    cmdTerm = split[0]
+    with open('whoami.json') as data_file:    
+        data = json.load(data_file)
 
+    pprint(data)
+    if str == 'what is your name':
+        if data['name']:
+            system('say My name is ' + data['name'])
+        else:    
+            system('say I dont know')
+
+def iamnotarobot():
+    while True:
+        with m as source:
+            audio = r.listen(source)
+        try:
+            # for testing purposes, we're just using the default API key
+            # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
+            # instead of `r.recognize_google(audio)`
+            print("Frank thinks you said " + r.recognize_google(audio))
+            from pprint import pprint
+            obj = r.recognize_google(audio, show_all=True)
+            n = json.dumps(obj)  
+            o = json.loads(n)
+            cmd = "" + o['alternative'][0]['transcript']
+            if answerSelfQuestion(cmd):
+                break
+        except sr.UnknownValueError:
+            print("Frank could not understand audio")
+        except sr.RequestError as e:
+            print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
 startListening()
