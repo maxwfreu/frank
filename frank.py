@@ -4,6 +4,7 @@ import webbrowser
 import json 
 import spotipy
 import time
+
 from os import system
 
 def handleCmd(str):
@@ -15,8 +16,7 @@ def handleCmd(str):
     if str == "stop listening":
         system('say Goodbye max')
         print("goodbye max")
-        listen = False
-        stop_listening()
+        return True
     if cmdTerm == "search":
         system('say Let me search that for you')
         print("I am pulling up a google search for you now")
@@ -29,15 +29,18 @@ def handleCmd(str):
             system("sudo spotify play " + str.split(' ', 1)[1])
         else:
             system("sudo spotify play")
-    return
+    return False
+
+
 r = sr.Recognizer()
 m = sr.Microphone()
+with m as source:
+    r.adjust_for_ambient_noise(source) # we only need to calibrate once, before we start listening
 # this is called from the background thread
 def startListening():
     # received audio data, now we'll recognize it using Google Speech Recognition
     while True:
         with m as source:
-            r.adjust_for_ambient_noise(source) # we only need to calibrate once, before we start listening
             audio = r.listen(source)
         try:
             # for testing purposes, we're just using the default API key
@@ -49,7 +52,8 @@ def startListening():
             n = json.dumps(obj)  
             o = json.loads(n)
             cmd = "" + o['alternative'][0]['transcript']
-            handleCmd(cmd)
+            if handleCmd(cmd):
+                break
         except sr.UnknownValueError:
             print("Frnak could not understand audio")
         except sr.RequestError as e:
