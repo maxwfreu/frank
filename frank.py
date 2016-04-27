@@ -10,14 +10,16 @@ from os import system
 from pprint import pprint
 
 def handleSearches(split, cmdstr):
-    if split[1] == 'google':
+    if split[1].lower() == 'google':
         system('say pulling up a google search now')
         # print("I am pulling up a google search for you now")
         if split[2] == 'for':
-            url = "https://www.google.com.tr/search?q={}".format(str.split(' ',3)[3])    
+            q = cmdstr.split(' ',3)[3]
+            url = "https://www.google.com.tr/search?q={}".format(q)    
             webbrowser.open(url)
         else:
-            url = "https://www.google.com.tr/search?q={}".format(str.split(' ',2)[2])    
+            q = cmdstr.split(' ',2)[2]
+            url = "https://www.google.com.tr/search?q={}".format(q)    
             webbrowser.open(url)
     if split [1] == 'Wikipedia':
         system('say pulling the wikipedia page now')
@@ -58,6 +60,19 @@ def handleCmd(str):
         system("sudo spotify play list " + str.split(' ', 1)[1])
     return False
 
+def handleRequest():
+    with m as source:
+        audio = r.listen(source)
+    try:
+        obj = r.recognize_google(audio, show_all=True)
+        n = json.dumps(obj)  
+        o = json.loads(n)
+        cmd = "" + o['alternative'][0]['transcript']
+        return handleCmd(cmd)
+    except sr.UnknownValueError:
+        print("Frank could not understand audio")
+    except sr.RequestError as e:
+        print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
 r = sr.Recognizer()
 m = sr.Microphone()
@@ -78,7 +93,12 @@ def startListening():
             n = json.dumps(obj)  
             o = json.loads(n)
             cmd = "" + o['alternative'][0]['transcript']
-            if handleCmd(cmd):
+            if "hey frank" in cmd.lower():
+                system('say What can I do for you?')
+                if handleRequest():
+                    break
+            if "stop listening" in cmd.lower():
+                system('say Goodbye')
                 break
         except sr.UnknownValueError:
             print("Frank could not understand audio")
