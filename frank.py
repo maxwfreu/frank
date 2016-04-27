@@ -9,7 +9,28 @@ import wikipedia
 from os import system
 from pprint import pprint
 
-
+def handleSearches(split, cmdstr):
+    if split[1] == 'google':
+        system('say pulling up a google search now')
+        # print("I am pulling up a google search for you now")
+        if split[2] == 'for':
+            url = "https://www.google.com.tr/search?q={}".format(str.split(' ',3)[3])    
+            webbrowser.open(url)
+        else:
+            url = "https://www.google.com.tr/search?q={}".format(str.split(' ',2)[2])    
+            webbrowser.open(url)
+    if split [1] == 'Wikipedia':
+        system('say pulling the wikipedia page now')
+        if split[2] == 'for':
+            page = wikipedia.page(cmdstr.split(' ', 3)[3])
+            webbrowser.open(page.url)
+        else:
+            try:
+                page = wikipedia.page(cmdstr.split(' ', 2)[2])
+                webbrowser.open(page.url)
+            except wikipedia.exceptions.DisambiguationError as e:
+                system('say Disambiguation Error. Here is a list of possible searches')
+                print(e)
 def handleCmd(str):
     split = str.split()
     cmdTerm = split[0]
@@ -24,22 +45,7 @@ def handleCmd(str):
         print("goodbye max")
         return True
     if cmdTerm == "search":
-        system('say Let me search that for you')
-        if split[1] == 'google':
-            # print("I am pulling up a google search for you now")
-            if split[2] == 'for':
-                url = "https://www.google.com.tr/search?q={}".format(str.split(' ',3)[3])    
-                webbrowser.open(url)
-            else:
-                url = "https://www.google.com.tr/search?q={}".format(str.split(' ',2)[2])    
-                webbrowser.open(url)
-        if split [1] == 'Wikipedia':
-            if split[2] == 'for':
-                page = wikipedia.page(str.split(' ', 3)[3])
-                webbrowser.open(page.url)
-            else:
-                page = wikipedia.page(str.split(' ', 2)[2])
-                webbrowser.open(page.url)
+        handleSearches(split, str)
     if cmdTerm == "play":
         system('say Sure thing let me quickly pull up that dank track')
         print("playing dank tunes as per your request")
@@ -47,6 +53,9 @@ def handleCmd(str):
             system("sudo spotify play " + str.split(' ', 1)[1])
         else:
             system("sudo spotify play")
+    if cmdTerm.lower() == "playlist":
+        system('say Sure, thats a good playlist')
+        system("sudo spotify play list " + str.split(' ', 1)[1])
     return False
 
 
